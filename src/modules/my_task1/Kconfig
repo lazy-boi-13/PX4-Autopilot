@@ -1,0 +1,5 @@
+menuconfig MODULES_MY_TASK1
+	bool "MY_TASK1"
+	default n
+	---help---
+		Enable support for MY_TASK1

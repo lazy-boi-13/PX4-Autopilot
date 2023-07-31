@@ -5,6 +5,7 @@
 #include <matrix/math.hpp>
 #include <cstdlib>
 
+
 orb_advert_t mavlink_log_pub = nullptr;
 
 // required standard deviation of estimate for estimator to publish data
@@ -132,6 +133,8 @@ BlockLocalPositionEstimator::BlockLocalPositionEstimator() :
 		 (_param_lpe_fusion.get() & FUSE_PUB_AGL_Z) != 0,
 		 (_param_lpe_fusion.get() & FUSE_FLOW_GYRO_COMP) != 0,
 		 (_param_lpe_fusion.get() & FUSE_BARO) != 0);
+
+
 }
 
 bool
@@ -141,6 +144,7 @@ BlockLocalPositionEstimator::init()
 		PX4_ERR("callback registration failed");
 		return false;
 	}
+
 
 	return true;
 }
@@ -184,6 +188,7 @@ void BlockLocalPositionEstimator::Run()
 		return;
 	}
 
+
 	uint64_t newTimeStamp = hrt_absolute_time();
 	float dt = (newTimeStamp - _timeStamp) / 1.0e6f;
 	_timeStamp = newTimeStamp;
@@ -222,31 +227,37 @@ void BlockLocalPositionEstimator::Run()
 		}
 	}
 
+
+
+
+
 	// reset pos, vel, and terrain on arming
 
 	// XXX this will be re-enabled for indoor use cases using a
 	// selection param, but is really not helping outdoors
 	// right now.
 
-	// if (!_lastArmedState && armedState) {
 
-	//      // we just armed, we are at origin on the ground
-	//      _x(X_x) = 0;
-	//      _x(X_y) = 0;
-	//      // reset Z or not? _x(X_z) = 0;
+/* 	 if (!_lastArmedState && armedState) {
 
-	//      // we aren't moving, all velocities are zero
-	//      _x(X_vx) = 0;
-	//      _x(X_vy) = 0;
-	//      _x(X_vz) = 0;
+	     // we just armed, we are at origin on the ground
+	     _x(X_x) = 0;
+	     _x(X_y) = 0;
+	     _x(X_z) = 0;
 
-	//      // assume we are on the ground, so terrain alt is local alt
-	//      _x(X_tz) = _x(X_z);
+	     // we aren't moving, all velocities are zero
+	     _x(X_vx) = 0;
+	     _x(X_vy) = 0;
+	     _x(X_vz) = 0;
 
-	//      // reset lowpass filter as well
-	//      _xLowPass.setState(_x);
-	//      _aglLowPass.setState(0);
-	// }
+	     // assume we are on the ground, so terrain alt is local alt
+	     _x(X_tz) = _x(X_z);
+
+	     // reset lowpass filter as well
+	     _xLowPass.setState(_x);
+	     _aglLowPass.setState(0);
+	}
+ */
 
 	_lastArmedState = armedState;
 
@@ -263,7 +274,9 @@ void BlockLocalPositionEstimator::Run()
 
 	_flowUpdated = (_param_lpe_fusion.get() & FUSE_FLOW) && _sub_flow.update();
 	_gpsUpdated = (_param_lpe_fusion.get() & FUSE_GPS) && _sub_gps.update();
+
 	_visionUpdated = (_param_lpe_fusion.get() & FUSE_VIS_POS) && _sub_visual_odom.update();
+
 	_mocapUpdated = _sub_mocap_odom.update();
 	_lidarUpdated = (_sub_lidar != nullptr) && _sub_lidar->update();
 	_sonarUpdated = (_sub_sonar != nullptr) && _sub_sonar->update();
@@ -463,6 +476,7 @@ void BlockLocalPositionEstimator::Run()
 		}
 	}
 
+
 	if (_visionUpdated) {
 		if (_sensorTimeout & SENSOR_VISION) {
 			visionInit();
@@ -471,6 +485,7 @@ void BlockLocalPositionEstimator::Run()
 			visionCorrect();
 		}
 	}
+
 
 	if (_mocapUpdated) {
 		if (_sensorTimeout & SENSOR_MOCAP) {
@@ -589,7 +604,6 @@ void BlockLocalPositionEstimator::publishLocalPos()
 		_pub_lpos.get().z_valid = _estimatorInitialized & EST_Z;
 		_pub_lpos.get().v_xy_valid = _estimatorInitialized & EST_XY;
 		_pub_lpos.get().v_z_valid = _estimatorInitialized & EST_Z;
-
 		_pub_lpos.get().x = xLP(X_x);	// north
 		_pub_lpos.get().y = xLP(X_y);	// east
 
@@ -659,6 +673,7 @@ void BlockLocalPositionEstimator::publishOdom()
 			_pub_odom.get().position[2] = xLP(X_z);	// down
 		}
 
+
 		// orientation
 		matrix::Quatf q = matrix::Quatf(_sub_att.get().q);
 		q.copyTo(_pub_odom.get().q);
@@ -707,6 +722,21 @@ void BlockLocalPositionEstimator::publishOdom()
 		_pub_odom.get().timestamp = hrt_absolute_time();
 		_pub_odom.update();
 	}
+}
+
+void BlockLocalPositionEstimator::publishVisualOdometry()
+{
+	_pub_visual_odom.get().timestamp_sample = _timeStamp;
+
+	Tag::corr_pkg_t pos = _ret.getposition(true);
+	_pub_visual_odom.get().position[0] = pos.x;
+	_pub_visual_odom.get().position[1] = pos.y;
+	_pub_visual_odom.get().position[2]=  pos.z;
+
+	_pub_visual_odom.get().timestamp = hrt_absolute_time();
+	_pub_visual_odom.update();
+
+
 }
 
 void BlockLocalPositionEstimator::publishEstimatorStatus()

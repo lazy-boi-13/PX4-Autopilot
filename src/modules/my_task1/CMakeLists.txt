@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2015 PX4 Development Team. All rights reserved.
+#   Copyright (c) 2018 PX4 Development Team. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,26 +30,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
+
 px4_add_module(
-	MODULE modules__local_position_estimator
-	MAIN local_position_estimator
-	COMPILE_FLAGS
-	STACK_MAIN 5700
-	STACK_MAX 3700
+	MODULE modules__MY_TASK1
+	MAIN MY_TASK1
 	SRCS
-		BlockLocalPositionEstimator.cpp
-		tag.cpp
-		sensors/flow.cpp
-		sensors/lidar.cpp
-		sensors/sonar.cpp
-		sensors/gps.cpp
-		sensors/baro.cpp
-		sensors/vision.cpp
-		sensors/mocap.cpp
-		sensors/land.cpp
-		sensors/landing_target.cpp
-	DEPENDS
-		controllib
-		geo
-		px4_work_queue
+		MY_TASK1.cpp
 	)
+

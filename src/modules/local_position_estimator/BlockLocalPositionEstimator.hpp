@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tag.hpp"
 #include <drivers/drv_hrt.h>
 #include <px4_platform_common/module.h>
 #include <px4_platform_common/module_params.h>
@@ -125,7 +126,10 @@ public:
 
 	bool init();
 
+
 private:
+
+ 	Tag _ret;
 
 	// constants
 	enum {X_x = 0, X_y, X_z, X_vx, X_vy, X_vz, X_bx, X_by, X_bz, X_tz, n_x};
@@ -256,6 +260,7 @@ private:
 	void publishOdom();
 	void publishEstimatorStatus();
 	void publishEk2fTimestamps();
+	void publishVisualOdometry();
 
 	// attributes
 	// ----------------------------
@@ -291,6 +296,7 @@ private:
 	uORB::PublicationData<estimator_status_s> _pub_est_status{ORB_ID(estimator_status)};
 	uORB::PublicationData<estimator_innovations_s> _pub_innov{ORB_ID(estimator_innovations)};
 	uORB::PublicationData<estimator_innovations_s> _pub_innov_var{ORB_ID(estimator_innovation_variances)};
+	uORB::PublicationData<vehicle_odometry_s> _pub_visual_odom{ORB_ID(vehicle_visual_odometry)};
 
 	// map projection
 	MapProjection _map_ref;
